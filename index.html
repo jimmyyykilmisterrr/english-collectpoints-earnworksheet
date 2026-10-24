@@ -1,201 +1,430 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Form 1 English A2 Mario Drill</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #222; color: #fff; text-align: center; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
-        
-        #game-container { position: relative; width: 100%; max-width: 800px; height: 450px; background: #5c94fc; border: 4px solid #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        canvas { display: block; width: 100%; height: 100%; }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
+<title>SMK SEBUYAU — Exam Vault Runner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Luckiest+Guy&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{width:100%;height:100%;overflow:hidden;background:#1E9BE0;font-family:'Fredoka',sans-serif;user-select:none;-webkit-user-select:none;}
+  .hidden{display:none !important;}
+  #gameCanvas{position:fixed;inset:0;z-index:1;display:block;touch-action:none;}
+  
+  /* HUD */
+  #hud{position:fixed;top:10px;left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:0 12px;pointer-events:none;}
+  .hud-pill{display:flex;align-items:center;gap:8px;background:rgba(13,24,45,0.75);border:2px solid rgba(255,255,255,0.4);color:#FFFDF4;font-weight:700;border-radius:999px;padding:6px 14px;font-size:0.95rem;}
+  .vm-track{width:110px;height:12px;background:rgba(0,0,0,0.5);border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,0.3);}
+  #vmFill{height:100%;width:0%;background:linear-gradient(90deg,#FFE45C,#F5A623);border-radius:999px;transition:width .3s;}
+  .boost-pill{background:#E63946;color:#FFF;border-color:#FFF;display:none;}
+  
+  /* TOUCH CONTROLS */
+  #touchControls{position:fixed;left:0;right:0;bottom:14px;display:flex;justify-content:space-between;align-items:flex-end;padding:0 16px;z-index:25;pointer-events:none;}
+  .tc-group{display:flex;gap:10px;}
+  .tc-btn{pointer-events:auto;width:68px;height:68px;border-radius:50%;border:3px solid #FFF;background:rgba(19,33,60,0.6);color:#FFF;font-size:1.5rem;display:flex;align-items:center;justify-content:center;touch-action:none;cursor:pointer;}
+  .tc-btn:active{transform:scale(0.88);background:rgba(255,255,255,0.6);color:#000;}
+  .tc-jump{width:82px;height:82px;background:rgba(230,57,70,0.85);}
+  .tc-fire{width:72px;height:72px;background:rgba(245,166,35,0.9);display:none;}
 
-        /* UI Overlays */
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; padding: 20px; }
-        .hidden { display: none !important; }
+  /* OVERLAYS */
+  .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:40;background:linear-gradient(180deg,#1E9BE0 0%,#8FE0FF 100%);}
+  .card{background:#FFFDF2;border:4px solid #FFD93D;border-radius:24px;max-width:420px;width:calc(100% - 32px);padding:20px;text-align:center;box-shadow:0 16px 40px rgba(0,0,0,0.3);}
+  .badge{background:#1E3A8A;color:#FFF;font-size:0.75rem;padding:4px 12px;border-radius:999px;display:inline-block;margin-bottom:8px;}
+  .title{font-family:'Luckiest Guy';font-size:2rem;color:#B7410E;margin-bottom:10px;}
+  .input-box{width:120px;font-family:'Luckiest Guy';font-size:1.8rem;text-align:center;padding:6px;color:#B7410E;border:3px solid #FFD93D;border-radius:12px;margin:10px 0;}
+  .btn-main{width:100%;font-family:'Luckiest Guy';font-size:1.4rem;color:#FFF;padding:14px;border:none;border-radius:16px;background:linear-gradient(180deg,#FF5A5F,#C81D25);cursor:pointer;margin-top:10px;}
+  .btn-main:active{transform:scale(0.96);}
+  .btn-next{background:linear-gradient(180deg,#34D399,#059669);}
 
-        h1 { color: #f8d038; font-size: 28px; margin-bottom: 10px; text-shadow: 2px 2px #000; }
-        p { font-size: 16px; margin-bottom: 15px; color: #ddd; max-width: 500px; line-height: 1.4; }
-
-        input { padding: 12px; font-size: 16px; border-radius: 6px; border: 2px solid #f8d038; margin-bottom: 15px; width: 80%; max-width: 300px; text-align: center; }
-        
-        button { background: #e52521; color: white; border: none; padding: 12px 24px; font-size: 18px; font-weight: bold; border-radius: 6px; cursor: pointer; box-shadow: 0 4px #900; transition: transform 0.1s; }
-        button:active { transform: translateY(4px); box-shadow: none; }
-
-        /* Modal for Questions */
-        #quiz-modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 500px; background: #2c3e50; border: 4px solid #f1c40f; border-radius: 12px; padding: 20px; z-index: 20; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
-        #quiz-question { font-size: 18px; color: #fff; margin-bottom: 15px; }
-        .option-btn { display: block; width: 100%; background: #3498db; color: white; border: none; padding: 10px; margin: 8px 0; font-size: 16px; border-radius: 6px; text-align: left; cursor: pointer; box-shadow: 0 3px #1d6fa5; }
-        .option-btn:active { transform: translateY(2px); box-shadow: none; }
-
-        /* HUD */
-        #hud { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; color: white; text-shadow: 2px 2px #000; z-index: 5; }
-
-        /* Mobile Controls */
-        #controls { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 20px; z-index: 5; pointer-events: none; }
-        .touch-btn { width: 60px; height: 60px; background: rgba(255,255,255,0.3); border: 2px solid #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; color: white; font-weight: bold; pointer-events: auto; }
-        .touch-btn:active { background: rgba(255,255,255,0.6); }
-        .btn-group { display: flex; gap: 10px; }
-
-        /* Vault Box */
-        .vault-box { background: #111; border: 2px dashed #f8d038; padding: 15px; border-radius: 8px; margin: 15px 0; width: 100%; max-width: 350px; }
-        .vault-code { font-size: 32px; color: #2ecc71; font-weight: bold; letter-spacing: 2px; }
-    </style>
+  /* QUIZ MODAL */
+  #quizModal{z-index:45;background:rgba(13,23,48,0.7);}
+  .quiz-q{font-weight:700;font-size:1.1rem;color:#1E3A8A;margin:12px 0;}
+  .quiz-opt{width:100%;text-align:left;padding:10px;margin:6px 0;border:2px solid #CBD5E1;border-radius:12px;background:#FFF;font-weight:600;font-size:0.95rem;cursor:pointer;}
+  .quiz-opt.correct{border-color:#10B981;background:#D1FAE5;}
+  .quiz-opt.wrong{border-color:#EF4444;background:#FEE2E2;}
+</style>
 </head>
 <body>
 
-<div id="game-container">
-    <!-- HUD -->
-    <div id="hud">
-        <span id="score-text">SCORE: 0 / 500</span>
-        <span id="power-text" style="color: #f1c40f;">POWER: NORMAL</span>
-    </div>
+<canvas id="gameCanvas"></canvas>
 
-    <canvas id="gameCanvas" width="800" height="450"></canvas>
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div class="hud-pill">🪙 <span id="scoreVal">0</span></div>
+  <div class="hud-pill">
+    <span>🔒 LEVEL <span id="lvlNum">1</span></span>
+    <div class="vm-track"><div id="vmFill"></div></div>
+    <span id="vmText">0 / 50</span>
+  </div>
+  <div id="firePill" class="hud-pill boost-pill">✏️ SHOOT READY</div>
+</div>
 
-    <!-- START SCREEN -->
-    <div id="start-screen" class="overlay">
-        <h1>MARIO ENGLISH DRILL</h1>
-        <p>Hit Question Blocks (<b>?</b>) and collect coins to reach <b>500 Points</b> and unlock your English Exam Vault!</p>
-        <input type="text" inputmode="numeric" pattern="[0-9]*" id="student-id" placeholder="Enter 2-Digit Class No. (e.g. 05)" maxlength="2" />
-        <button type="button" onclick="startGame()" ontouchend="startGame();">START GAME</button>
-    </div>"startGame();event.preventDefault();">START GAME</button>
-    <!-- QUESTION MODAL -->
-    <div id="quiz-modal" class="hidden">
-        <h3 style="color:#f1c40f; margin-bottom:10px;">QUESTION BLOCK!</h3>
-        <p id="quiz-question">Question text here...</p>
-        <div id="quiz-options"></div>
-    </div>
+<!-- CONTROLS -->
+<div id="touchControls">
+  <div class="tc-group">
+    <button class="tc-btn" id="btnLeft">◄</button>
+    <button class="tc-btn" id="btnRight">►</button>
+  </div>
+  <div class="tc-group">
+    <button class="tc-btn tc-fire" id="btnFire">✏️</button>
+    <button class="tc-btn tc-jump" id="btnJump">▲</button>
+  </div>
+</div>
 
-    <!-- VICTORY SCREEN -->
-    <div id="victory-screen" class="overlay hidden">
-        <h1>🎉 VICTORY! 500 POINTS REACHED!</h1>
-        <p>Great job! Here is your personalized Vault Passcode:</p>
-        <div class="vault-box">
-            <div style="font-size:12px; color:#aaa;">YOUR PASSCODE:</div>
-            <div id="final-code" class="vault-code">STUDENT00</div>
-        </div>
-        <p style="font-size: 14px;">Use this passcode on the Google Form Vault to unlock your worksheet!</p>
-        <button onclick="openGoogleForm()">UNLOCK EXAM VAULT ➔</button>
-    </div>
+<!-- START SCREEN -->
+<div id="startScreen" class="overlay">
+  <div class="card">
+    <div class="badge">🏫 SMK SEBUYAU · FORM 1 ENGLISH</div>
+    <h1 class="title">CAMPUS RUNNER</h1>
+    <p style="font-size:0.9rem;color:#334155;">Collect coins (<b>+2 pts</b>) &amp; hit <b>? blocks</b> (<b>+15 pts</b> &amp; Projectiles) to reach <b>50 pts</b>!</p>
+    <br/>
+    <label style="font-weight:700;color:#1E3A8A;">Class No. (e.g. 05):</label><br/>
+    <input id="classInput" class="input-box" type="text" inputmode="numeric" maxlength="2" placeholder="05"/>
+    <button id="startBtn" class="btn-main">START GAME</button>
+  </div>
+</div>
 
-    <!-- MOBILE CONTROLS -->
-    <div id="controls">
-        <div class="btn-group">
-            <div class="touch-btn" id="btn-left">◀</div>
-            <div class="touch-btn" id="btn-right">▶</div>
-        </div>
-        <div class="touch-btn" id="btn-jump">▲</div>
-    </div>
+<!-- QUIZ MODAL -->
+<div id="quizModal" class="overlay hidden">
+  <div class="card">
+    <div class="badge">❓ GRAMMAR QUIZ (+15 PTS)</div>
+    <div class="quiz-q" id="quizQuestion">Question?</div>
+    <div id="quizOptions"></div>
+  </div>
+</div>
+
+<!-- VICTORY 1 OVERLAY -->
+<div id="vic1Overlay" class="overlay hidden">
+  <div class="card">
+    <div style="font-size:3rem;">🏆</div>
+    <h2 class="title" style="color:#059669;">LEVEL 1 CLEARED!</h2>
+    <p style="font-size:0.9rem;">Passcode generated: <b id="passCode1">STUDENT05</b></p>
+    <br/>
+    <button id="nextLvlBtn" class="btn-main btn-next">NEXT LEVEL: EXAM HALL (BOSS) →</button>
+  </div>
+</div>
+
+<!-- FINAL VICTORY OVERLAY -->
+<div id="vicFinalOverlay" class="overlay hidden">
+  <div class="card">
+    <div style="font-size:3.5rem;">👑</div>
+    <h2 class="title" style="color:#059669;">EXAM VAULT UNLOCKED!</h2>
+    <p style="font-size:0.9rem;margin-bottom:10px;">You defeated Teacher Boss &amp; scored 100 PTS!</p>
+    <a href="https://forms.gle/uW1qpTaysUyEnif7" target="_blank" style="text-decoration:none;">
+      <button class="btn-main btn-next">UNLOCK GOOGLE FORM VAULT →</button>
+    </a>
+  </div>
+</div>
+
+<!-- GAME OVER OVERLAY -->
+<div id="gameOverOverlay" class="overlay hidden">
+  <div class="card">
+    <div style="font-size:3rem;">💀</div>
+    <h2 class="title" style="color:#E63946;">GAME OVER</h2>
+    <p style="font-size:0.9rem;">Hit by enemy/teacher! Try again!</p>
+    <button id="tryAgainBtn" class="btn-main">TRY AGAIN</button>
+  </div>
 </div>
 
 <script>
-// --- GOOGLE FORM VAULT LINK ---
-const GOOGLE_FORM_URL = "https://forms.gle/uW1qpwTaysUyEnif7";
-// --- CEFR A2 ENGLISH QUESTIONS ---
-const a2Questions = [
-    { q: "Read the message: 'Hi! I'm at the cinema to buy tickets for tomorrow.' Why is Tom at the cinema?", options: ["To watch a movie now", "To buy tickets for tomorrow", "To eat dinner"], answer: 1 },
-    { q: "Choose the correct past tense form: 'Yesterday, we ______ to the beach.'", options: ["go", "went", "gone"], answer: 1 },
-    { q: "Complete the sentence: 'She is interested ______ learning English.'", options: ["in", "on", "at"], answer: 0 },
-    { q: "Choose the correct verb: 'I usually ______ to school by bus every morning.'", options: ["goes", "go", "going"], answer: 1 },
-    { q: "Fill in the blank: 'If you want to catch the bus, you ______ leave now.'", options: ["should", "would", "could"], answer: 0 },
-    { q: "Which word means 'a place next to the sea with sand'?", options: ["Mountain", "Beach", "Forest"], answer: 1 },
-    { q: "Complete the conversation: 'Can I borrow your pencil?' -> '______'", options: ["Yes, here you are.", "No, I am sleeping.", "Thank you very much."], answer: 0 }
-];
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
 
-// --- GAME VARIABLES ---
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+  let gameState = 'START'; // START, PLAYING, QUIZ, VIC1, VICFINAL, GAMEOVER
+  let level = 1; // 1: Campus, 2: Exam Hall
+  let score = 0;
+  let targetScore = 50;
+  let studentID = "05";
+  let canShoot = false;
+  let cameraX = 0;
 
-let studentID = "01";
-let score = 0;
-const TARGET_SCORE = 500;
-let gameState = "START"; 
-let powerUpTimer = 0;
+  let keys = { left: false, right: false, jump: false, fire: false };
+  let touchLeft = false, touchRight = false;
 
-// Player Physics & Properties
-const player = {
-    x: 100, y: 300, width: 32, height: 48,
-    vx: 0, vy: 0, speed: 4, jumpPower: -12,
-    grounded: false, color: "#e52521"
-};
+  const player = { x: 100, y: 200, w: 32, h: 48, vx: 0, vy: 0, speed: 4.5, jumpPower: -11.5, grounded: false, facing: 'right' };
+  let boss = { x: 1200, y: 220, w: 45, h: 65, hp: 5, active: false, attackTimer: 0 };
 
-const keys = { left: false, right: false, up: false };
-let cameraX = 0;
+  let platforms = [], coins = [], qBlocks = [], enemies = [], projectiles = [], bossPapers = [];
 
-// Map Elements
-const gravity = 0.6;
-const groundY = 380;
+  const a2Questions = [
+    { q: "Yesterday, we _____ to school.", options: ["go", "went", "gone", "going"], correct: 1 },
+    { q: "She is interested _____ learning English.", options: ["in", "on", "at", "with"], correct: 0 },
+    { q: "I usually _____ to school by bus.", options: ["goes", "go", "went", "going"], correct: 1 },
+    { q: "A car is _____ than a bicycle.", options: ["fast", "faster", "fastest", "more fast"], correct: 1 }
+  ];
 
-let blocks = [
-    { x: 250, y: 260, width: 40, height: 40, hit: false },
-    { x: 450, y: 220, width: 40, height: 40, hit: false },
-    { x: 700, y: 260, width: 40, height: 40, hit: false },
-    { x: 950, y: 200, width: 40, height: 40, hit: false },
-    { x: 1200, y: 260, width: 40, height: 40, hit: false }
-];
-
-let coins = [
-    { x: 180, y: 330, collected: false },
-    { x: 350, y: 330, collected: false },
-    { x: 550, y: 330, collected: false },
-    { x: 600, y: 330, collected: false },
-    { x: 820, y: 330, collected: false },
-    { x: 1050, y: 330, collected: false },
-    { x: 1300, y: 330, collected: false }
-];
-
-// --- START GAME ---
-function startGame() {
-    // 1. Force mobile keyboard to close immediately
-    if (document.activeElement) {
-        document.activeElement.blur();
-    }
-
-    // 2. Safely grab student input value or fallback to "01"
-    const inputEl = document.getElementById("student-id") || document.getElementById("student-input");
-    const val = inputEl ? inputEl.value.trim() : "";
-    studentID = val ? val.padStart(2, '0') : "01";
-
-    // 3. Hide start screen overlay and launch game loop
-    const startOverlay = document.getElementById("start-screen");
-    if (startOverlay) {
-        startOverlay.classList.add("hidden");
-        startOverlay.style.display = "none";
-    }
-    
-    gameState = "PLAYING";
-    gameLoop();
-}
-
-// --- MAIN GAME LOOP ---
-function gameLoop() {
-    if (gameState !== "PLAYING") return;
-
-    update();
-    render();
-
-    requestAnimationFrame(gameLoop);
-}
-
-// --- UPDATE GAME STATE ---
-function update() {
-    // Power Up Timer Logic
-    if (powerUpTimer > 0) {
-        powerUpTimer--;
-        player.speed = 7;
-        player.jumpPower = -15;
-        document.getElementById("power-text").innerText = "POWER: SUPER (SPEED + JUMP)";
-        document.getElementById("power-text").style.color = "#2ecc71";
+  function initLevel() {
+    projectiles = [];
+    bossPapers = [];
+    if (level === 1) {
+      targetScore = 50;
+      platforms = [
+        { x: 0, y: 380, w: 3000, h: 70, type: 'ground' },
+        { x: 400, y: 270, w: 160, h: 20 },
+        { x: 700, y: 200, w: 180, h: 20 },
+        { x: 1100, y: 260, w: 200, h: 20 }
+      ];
+      coins = [
+        { x: 450, y: 220, collected: false }, { x: 500, y: 220, collected: false },
+        { x: 750, y: 150, collected: false }, { x: 1150, y: 210, collected: false }
+      ];
+      qBlocks = [{ x: 480, y: 270, hit: false }, { x: 760, y: 200, hit: false }];
+      enemies = [{ x: 800, y: 340, w: 30, h: 30, dir: -1, minX: 650, maxX: 950 }];
+      boss.active = false;
     } else {
-        player.speed = 4;
-        player.jumpPower = -12;
-        document.getElementById("power-text").innerText = "POWER: NORMAL";
-        document.getElementById("power-text").style.color = "#f1c40f";
+      // Level 2: Exam Hall Boss Fight
+      targetScore = 100;
+      platforms = [
+        { x: 0, y: 380, w: 1800, h: 70, type: 'hall' },
+        { x: 300, y: 270, w: 140, h: 20 },
+        { x: 600, y: 220, w: 140, h: 20 }
+      ];
+      coins = [{ x: 350, y: 220, collected: false }, { x: 650, y: 170, collected: false }];
+      qBlocks = [{ x: 380, y: 270, hit: false }];
+      enemies = [];
+      boss = { x: 1100, y: 315, w: 45, h: 65, hp: 5, active: true, attackTimer: 0 };
+    }
+    document.getElementById('lvlNum').textContent = level;
+    document.getElementById('vmText').textContent = score + ' / ' + targetScore;
+  }
+
+  function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  function startGame() {
+    document.activeElement.blur();
+    const val = document.getElementById('classInput').value.trim();
+    if (val) studentID = val.padStart(2, '0');
+    document.getElementById('startScreen').classList.add('hidden');
+    document.getElementById('hud').classList.remove('hidden');
+    score = 0; level = 1; canShoot = false;
+    player.x = 80; player.y = 200;
+    initLevel();
+    gameState = 'PLAYING';
+  }
+
+  document.getElementById('startBtn').onclick = startGame;
+
+  // Controls & Touch
+  window.addEventListener('keydown', e => {
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+    if (e.code === 'Space' || e.code === 'ArrowUp') { if (player.grounded) { player.vy = player.jumpPower; player.grounded = false; } }
+    if (e.code === 'KeyF') shootProjectile();
+  });
+  window.addEventListener('keyup', e => {
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+  });
+
+  function setupTouch(id, fnStart, fnEnd) {
+    const el = document.getElementById(id);
+    el.addEventListener('touchstart', e => { e.preventDefault(); fnStart(); });
+    el.addEventListener('touchend', e => { e.preventDefault(); if (fnEnd) fnEnd(); });
+  }
+  setupTouch('btnLeft', () => touchLeft = true, () => touchLeft = false);
+  setupTouch('btnRight', () => touchRight = true, () => touchRight = false);
+  setupTouch('btnJump', () => { if (player.grounded) { player.vy = player.jumpPower; player.grounded = false; } });
+  setupTouch('btnFire', () => shootProjectile());
+
+  function shootProjectile() {
+    if (!canShoot || gameState !== 'PLAYING') return;
+    projectiles.push({ x: player.x + (player.facing === 'right' ? 30 : -10), y: player.y + 20, vx: player.facing === 'right' ? 8 : -8 });
+  }
+
+  // Update Engine
+  function update() {
+    if (gameState !== 'PLAYING') return;
+
+    let dir = 0;
+    if (keys.left || touchLeft) { dir = -1; player.facing = 'left'; }
+    if (keys.right || touchRight) { dir = 1; player.facing = 'right'; }
+    player.vx = dir * player.speed;
+    player.x += player.vx;
+
+    player.vy += 0.5;
+    player.y += player.vy;
+    player.grounded = false;
+
+    // Platform collisions
+    platforms.forEach(p => {
+      if (player.x + player.w > p.x && player.x < p.x + p.w && player.y + player.h >= p.y && player.y + player.h - player.vy <= p.y + 12 && player.vy > 0) {
+        player.y = p.y - player.h; player.vy = 0; player.grounded = true;
+      }
+    });
+
+    // Coins (+2 pts)
+    coins.forEach(c => {
+      if (!c.collected && Math.hypot((player.x + 16) - c.x, (player.y + 24) - c.y) < 25) {
+        c.collected = true; score += 2; updateHUD();
+      }
+    });
+
+    // Quiz Blocks (+15 pts + Projectiles)
+    qBlocks.forEach(qb => {
+      if (!qb.hit && player.x + player.w > qb.x && player.x < qb.x + 36 && player.y <= qb.y + 36 && player.y + player.h >= qb.y && player.vy < 0) {
+        qb.hit = true; player.vy = 2; triggerQuiz();
+      }
+    });
+
+    // Enemies & Boss Logic
+    enemies.forEach(e => {
+      e.x += e.dir * 2;
+      if (e.x < e.minX || e.x > e.maxX) e.dir *= -1;
+      if (Math.abs(player.x - e.x) < 25 && Math.abs(player.y - e.y) < 30) triggerGameOver();
+    });
+
+    // Boss Fight (Level 2)
+    if (boss.active) {
+      boss.attackTimer++;
+      if (boss.attackTimer > 90) {
+        boss.attackTimer = 0;
+        bossPapers.push({ x: boss.x, y: boss.y + 20, vx: -5 });
+      }
     }
 
-    // Horizontal Movement
-    if (keys.left) player.vx = -player.speed;
-    else if (keys.right) player.vx = player.
-  
+    // Projectile movement & hits
+    projectiles.forEach((p, pi) => {
+      p.x += p.vx;
+      enemies.forEach((e, ei) => {
+        if (Math.abs(p.x - e.x) < 25 && Math.abs(p.y - e.y) < 25) { enemies.splice(ei, 1); projectiles.splice(pi, 1); }
+      });
+      if (boss.active && Math.abs(p.x - boss.x) < 30 && Math.abs(p.y - boss.y) < 40) {
+        boss.hp--; projectiles.splice(pi, 1);
+        if (boss.hp <= 0) { boss.active = false; score += 30; updateHUD(); checkWin(); }
+      }
+    });
+
+    bossPapers.forEach(bp => {
+      bp.x += bp.vx;
+      if (Math.abs(player.x - bp.x) < 20 && Math.abs(player.y - bp.y) < 30) triggerGameOver();
+    });
+
+    cameraX = Math.max(0, player.x - canvas.width * 0.35);
+    checkWin();
+  }
+
+  function updateHUD() {
+    document.getElementById('scoreVal').textContent = score;
+    document.getElementById('vmFill').style.width = Math.min(100, (score / targetScore) * 100) + '%';
+    document.getElementById('vmText').textContent = score + ' / ' + targetScore;
+  }
+
+  function checkWin() {
+    if (score >= targetScore) {
+      if (level === 1) {
+        gameState = 'VIC1';
+        document.getElementById('passCode1').textContent = 'STUDENT' + studentID;
+        document.getElementById('vic1Overlay').classList.remove('hidden');
+      } else {
+        gameState = 'VICFINAL';
+        document.getElementById('vicFinalOverlay').classList.remove('hidden');
+      }
+    }
+  }
+
+  document.getElementById('nextLvlBtn').onclick = () => {
+    level = 2; score = 50; player.x = 80; player.y = 200;
+    document.getElementById('vic1Overlay').classList.add('hidden');
+    initLevel(); updateHUD(); gameState = 'PLAYING';
+  };
+
+  function triggerQuiz() {
+    gameState = 'QUIZ';
+    const q = a2Questions[Math.floor(Math.random() * a2Questions.length)];
+    document.getElementById('quizQuestion').textContent = q.q;
+    const optDiv = document.getElementById('quizOptions'); optDiv.innerHTML = '';
+    q.options.forEach((opt, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'quiz-opt'; btn.textContent = opt;
+      btn.onclick = () => {
+        if (idx === q.correct) {
+          score += 15; canShoot = true;
+          document.getElementById('firePill').style.display = 'inline-flex';
+          document.getElementById('btnFire').style.display = 'flex';
+          updateHUD();
+        }
+        document.getElementById('quizModal').classList.add('hidden');
+        gameState = 'PLAYING';
+      };
+      optDiv.appendChild(btn);
+    });
+    document.getElementById('quizModal').classList.remove('hidden');
+  }
+
+  function triggerGameOver() {
+    gameState = 'GAMEOVER';
+    document.getElementById('gameOverOverlay').classList.remove('hidden');
+  }
+  document.getElementById('tryAgainBtn').onclick = () => {
+    document.getElementById('gameOverOverlay').classList.add('hidden');
+    startGame();
+  };
+
+  // Render Engine
+  function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save(); ctx.translate(-cameraX, 0);
+
+    // Background (SMK Sebuyau Campus vs Exam Hall)
+    if (level === 1) {
+      ctx.fillStyle = '#93C5FD'; ctx.fillRect(cameraX, 0, canvas.width, canvas.height);
+      // SMK Sebuyau Main School Building Silhouette
+      ctx.fillStyle = '#1E3A8A'; ctx.fillRect(200, 180, 400, 200);
+      ctx.fillStyle = '#FFF'; ctx.font = 'bold 20px Fredoka'; ctx.fillText("SMK SEBUYAU", 330, 220);
+    } else {
+      ctx.fillStyle = '#FEF3C7'; ctx.fillRect(cameraX, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#D97706'; ctx.fillText("EXAM HALL - FINAL BOSS", cameraX + 300, 80);
+    }
+
+    // Platforms
+    platforms.forEach(p => {
+      ctx.fillStyle = level === 1 ? '#059669' : '#B45309';
+      ctx.fillRect(p.x, p.y, p.w, p.h);
+    });
+
+    // Coins
+    coins.forEach(c => {
+      if (!c.collected) { ctx.fillStyle = '#F59E0B'; ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, Math.PI*2); ctx.fill(); }
+    });
+
+    // Quiz Blocks
+    qBlocks.forEach(qb => {
+      ctx.fillStyle = qb.hit ? '#9CA3AF' : '#3B82F6'; ctx.fillRect(qb.x, qb.y, 36, 36);
+      ctx.fillStyle = '#FFF'; ctx.font = 'bold 20px Fredoka'; ctx.fillText('?', qb.x + 12, qb.y + 26);
+    });
+
+    // Enemies
+    ctx.fillStyle = '#EF4444';
+    enemies.forEach(e => ctx.fillRect(e.x, e.y, e.w, e.h));
+
+    // Boss Teacher
+    if (boss.active) {
+      ctx.fillStyle = '#7C3AED'; ctx.fillRect(boss.x, boss.y, boss.w, boss.h);
+      ctx.fillStyle = '#FFF'; ctx.font = '12px Fredoka'; ctx.fillText("TEACHER", boss.x, boss.y - 10);
+    }
+
+    // Projectiles
+    ctx.fillStyle = '#10B981';
+    projectiles.forEach(p => ctx.fillRect(p.x, p.y, 12, 6));
+
+    // Boss Exam Papers
+    ctx.fillStyle = '#FFF';
+    bossPapers.forEach(bp => ctx.fillRect(bp.x, bp.y, 14, 18));
+
+    // Player (Student Uniform)
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(player.x, player.y + 14, player.w, 20); // White Shirt
+    ctx.fillStyle = '#1E3A8A'; ctx.fillRect(player.x, player.y + 34, player.w, 14); // School Pants
+    ctx.fillStyle = '#FDE68A'; ctx.beginPath(); ctx.arc(player.x + 16, player.y + 10, 10, 0, Math.PI*2); ctx.fill(); // Head
+
+    ctx.restore();
+  }
+
+  function gameLoop() { update(); render(); requestAnimationFrame(gameLoop); }
+  requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
