@@ -149,13 +149,23 @@ let coins = [
 
 // --- START GAME ---
 function startGame() {
-    const input = document.getElementById("student-id").value.trim();
-    if (!input) {
-        alert("Please enter your 2-digit class register number!");
-        return;
+    // 1. Force mobile keyboard to close immediately
+    if (document.activeElement) {
+        document.activeElement.blur();
     }
-    studentID = input.padStart(2, '0');
-    document.getElementById("start-screen").classList.add("hidden");
+
+    // 2. Safely grab student input value or fallback to "01"
+    const inputEl = document.getElementById("student-id") || document.getElementById("student-input");
+    const val = inputEl ? inputEl.value.trim() : "";
+    studentID = val ? val.padStart(2, '0') : "01";
+
+    // 3. Hide start screen overlay and launch game loop
+    const startOverlay = document.getElementById("start-screen");
+    if (startOverlay) {
+        startOverlay.classList.add("hidden");
+        startOverlay.style.display = "none";
+    }
+    
     gameState = "PLAYING";
     gameLoop();
 }
