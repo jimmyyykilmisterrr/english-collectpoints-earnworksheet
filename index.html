@@ -58,10 +58,9 @@
     <div id="start-screen" class="overlay">
         <h1>MARIO ENGLISH DRILL</h1>
         <p>Hit Question Blocks (<b>?</b>) and collect coins to reach <b>500 Points</b> and unlock your English Exam Vault!</p>
-        <input type="number" id="student-id" placeholder="Enter 2-Digit Class No. (e.g. 05)" min="1" max="99">
-        <button onclick="startGame()" ontouchend=">START GAME</button>
+        <input type="text" inputmode="numeric" pattern="[0-9]*" id="student-id" placeholder="Enter 2-Digit Class No. (e.g. 05)" maxlength="2" />
+        <button type="button" onclick="startGame()" ontouchend="startGame();">START GAME</button>
     </div>"startGame();event.preventDefault();">START GAME</button>
-
     <!-- QUESTION MODAL -->
     <div id="quiz-modal" class="hidden">
         <h3 style="color:#f1c40f; margin-bottom:10px;">QUESTION BLOCK!</h3>
