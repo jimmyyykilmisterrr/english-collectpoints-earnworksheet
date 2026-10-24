@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Form 1 English A2 Mario Drill</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #222; color: #fff; text-align: center; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        
+        #game-container { position: relative; width: 100%; max-width: 800px; height: 450px; background: #5c94fc; border: 4px solid #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        canvas { display: block; width: 100%; height: 100%; }
+
+        /* UI Overlays */
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; padding: 20px; }
+        .hidden { display: none !important; }
+
+        h1 { color: #f8d038; font-size: 28px; margin-bottom: 10px; text-shadow: 2px 2px #000; }
+        p { font-size: 16px; margin-bottom: 15px; color: #ddd; max-width: 500px; line-height: 1.4; }
+
+        input { padding: 12px; font-size: 16px; border-radius: 6px; border: 2px solid #f8d038; margin-bottom: 15px; width: 80%; max-width: 300px; text-align: center; }
+        
+        button { background: #e52521; color: white; border: none; padding: 12px 24px; font-size: 18px; font-weight: bold; border-radius: 6px; cursor: pointer; box-shadow: 0 4px #900; transition: transform 0.1s; }
+        button:active { transform: translateY(4px); box-shadow: none; }
+
+        /* Modal for Questions */
+        #quiz-modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 500px; background: #2c3e50; border: 4px solid #f1c40f; border-radius: 12px; padding: 20px; z-index: 20; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+        #quiz-question { font-size: 18px; color: #fff; margin-bottom: 15px; }
+        .option-btn { display: block; width: 100%; background: #3498db; color: white; border: none; padding: 10px; margin: 8px 0; font-size: 16px; border-radius: 6px; text-align: left; cursor: pointer; box-shadow: 0 3px #1d6fa5; }
+        .option-btn:active { transform: translateY(2px); box-shadow: none; }
+
+        /* HUD */
+        #hud { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; color: white; text-shadow: 2px 2px #000; z-index: 5; }
+
+        /* Mobile Controls */
+        #controls { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 20px; z-index: 5; pointer-events: none; }
+        .touch-btn { width: 60px; height: 60px; background: rgba(255,255,255,0.3); border: 2px solid #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; color: white; font-weight: bold; pointer-events: auto; }
+        .touch-btn:active { background: rgba(255,255,255,0.6); }
+        .btn-group { display: flex; gap: 10px; }
+
+        /* Vault Box */
+        .vault-box { background: #111; border: 2px dashed #f8d038; padding: 15px; border-radius: 8px; margin: 15px 0; width: 100%; max-width: 350px; }
+        .vault-code { font-size: 32px; color: #2ecc71; font-weight: bold; letter-spacing: 2px; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <!-- HUD -->
+    <div id="hud">
+        <span id="score-text">SCORE: 0 / 500</span>
+        <span id="power-text" style="color: #f1c40f;">POWER: NORMAL</span>
+    </div>
+
+    <canvas id="gameCanvas" width="800" height="450"></canvas>
+
+    <!-- START SCREEN -->
+    <div id="start-screen" class="overlay">
+        <h1>MARIO ENGLISH DRILL</h1>
+        <p>Hit Question Blocks (<b>?</b>) and collect coins to reach <b>500 Points</b> and unlock your English Exam Vault!</p>
+        <input type="number" id="student-id" placeholder="Enter 2-Digit Class No. (e.g. 05)" min="1" max="99">
+        <button onclick="startGame()">START GAME</button>
+    </div>
+
+    <!-- QUESTION MODAL -->
+    <div id="quiz-modal" class="hidden">
+        <h3 style="color:#f1c40f; margin-bottom:10px;">QUESTION BLOCK!</h3>
+        <p id="quiz-question">Question text here...</p>
+        <div id="quiz-options"></div>
+    </div>
+
+    <!-- VICTORY SCREEN -->
+    <div id="victory-screen" class="overlay hidden">
+        <h1>🎉 VICTORY! 500 POINTS REACHED!</h1>
+        <p>Great job! Here is your personalized Vault Passcode:</p>
+        <div class="vault-box">
+            <div style="font-size:12px; color:#aaa;">YOUR PASSCODE:</div>
+            <div id="final-code" class="vault-code">STUDENT00</div>
+        </div>
+        <p style="font-size: 14px;">Use this passcode on the Google Form Vault to unlock your worksheet!</p>
+        <button onclick="openGoogleForm()">UNLOCK EXAM VAULT ➔</button>
+    </div>
+
+    <!-- MOBILE CONTROLS -->
+    <div id="controls">
+        <div class="btn-group">
+            <div class="touch-btn" id="btn-left">◀</div>
+            <div class="touch-btn" id="btn-right">▶</div>
+        </div>
+        <div class="touch-btn" id="btn-jump">▲</div>
+    </div>
+</div>
+
+<script>
+// --- GOOGLE FORM VAULT LINK ---
+const GOOGLE_FORM_URL = "https://forms.gle/uW1qpwTaysUyEnif7";
+// --- CEFR A2 ENGLISH QUESTIONS ---
+const a2Questions = [
+    { q: "Read the message: 'Hi! I'm at the cinema to buy tickets for tomorrow.' Why is Tom at the cinema?", options: ["To watch a movie now", "To buy tickets for tomorrow", "To eat dinner"], answer: 1 },
+    { q: "Choose the correct past tense form: 'Yesterday, we ______ to the beach.'", options: ["go", "went", "gone"], answer: 1 },
+    { q: "Complete the sentence: 'She is interested ______ learning English.'", options: ["in", "on", "at"], answer: 0 },
+    { q: "Choose the correct verb: 'I usually ______ to school by bus every morning.'", options: ["goes", "go", "going"], answer: 1 },
+    { q: "Fill in the blank: 'If you want to catch the bus, you ______ leave now.'", options: ["should", "would", "could"], answer: 0 },
+    { q: "Which word means 'a place next to the sea with sand'?", options: ["Mountain", "Beach", "Forest"], answer: 1 },
+    { q: "Complete the conversation: 'Can I borrow your pencil?' -> '______'", options: ["Yes, here you are.", "No, I am sleeping.", "Thank you very much."], answer: 0 }
+];
+
+// --- GAME VARIABLES ---
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+let studentID = "01";
+let score = 0;
+const TARGET_SCORE = 500;
+let gameState = "START"; 
+let powerUpTimer = 0;
+
+// Player Physics & Properties
+const player = {
+    x: 100, y: 300, width: 32, height: 48,
+    vx: 0, vy: 0, speed: 4, jumpPower: -12,
+    grounded: false, color: "#e52521"
+};
+
+const keys = { left: false, right: false, up: false };
+let cameraX = 0;
+
+// Map Elements
+const gravity = 0.6;
+const groundY = 380;
+
+let blocks = [
+    { x: 250, y: 260, width: 40, height: 40, hit: false },
+    { x: 450, y: 220, width: 40, height: 40, hit: false },
+    { x: 700, y: 260, width: 40, height: 40, hit: false },
+    { x: 950, y: 200, width: 40, height: 40, hit: false },
+    { x: 1200, y: 260, width: 40, height: 40, hit: false }
+];
+
+let coins = [
+    { x: 180, y: 330, collected: false },
+    { x: 350, y: 330, collected: false },
+    { x: 550, y: 330, collected: false },
+    { x: 600, y: 330, collected: false },
+    { x: 820, y: 330, collected: false },
+    { x: 1050, y: 330, collected: false },
+    { x: 1300, y: 330, collected: false }
+];
+
+// --- START GAME ---
+function startGame() {
+    const input = document.getElementById("student-id").value.trim();
+    if (!input) {
+        alert("Please enter your 2-digit class register number!");
+        return;
+    }
+    studentID = input.padStart(2, '0');
+    document.getElementById("start-screen").classList.add("hidden");
+    gameState = "PLAYING";
+    gameLoop();
+}
+
+// --- MAIN GAME LOOP ---
+function gameLoop() {
+    if (gameState !== "PLAYING") return;
+
+    update();
+    render();
+
+    requestAnimationFrame(gameLoop);
+}
+
+// --- UPDATE GAME STATE ---
+function update() {
+    // Power Up Timer Logic
+    if (powerUpTimer > 0) {
+        powerUpTimer--;
+        player.speed = 7;
+        player.jumpPower = -15;
+        document.getElementById("power-text").innerText = "POWER: SUPER (SPEED + JUMP)";
+        document.getElementById("power-text").style.color = "#2ecc71";
+    } else {
+        player.speed = 4;
+        player.jumpPower = -12;
+        document.getElementById("power-text").innerText = "POWER: NORMAL";
+        document.getElementById("power-text").style.color = "#f1c40f";
+    }
+
+    // Horizontal Movement
+    if (keys.left) player.vx = -player.speed;
+    else if (keys.right) player.vx = player.
+  
